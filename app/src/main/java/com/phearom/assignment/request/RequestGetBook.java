@@ -1,7 +1,6 @@
 package com.phearom.assignment.request;
 
 import android.content.Context;
-import android.text.TextUtils;
 
 import com.google.gson.reflect.TypeToken;
 import com.phearom.api.core.server.SuperRequest;
@@ -10,7 +9,6 @@ import com.phearom.assignment.model.Book;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by phearom on 6/1/16.
@@ -27,7 +25,8 @@ public class RequestGetBook extends SuperRequest<List<Book>> {
     }
 
     @Override
-    protected void getRequestParams(Map<String, String> params) {
+    protected boolean isPagination() {
+        return true;
     }
 
     @Override

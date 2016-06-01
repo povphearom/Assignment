@@ -1,8 +1,11 @@
 package com.phearom.assignment.ui;
 
 import android.databinding.DataBindingUtil;
-import android.support.v7.app.AppCompatActivity;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
 import android.util.Log;
 import android.view.View;
 
@@ -10,6 +13,7 @@ import com.android.volley.VolleyError;
 import com.phearom.api.core.binder.CompositeItemBinder;
 import com.phearom.api.core.binder.ItemBinder;
 import com.phearom.api.core.listener.ClickHandler;
+import com.phearom.api.core.listener.LoadMoreHandler;
 import com.phearom.api.core.server.ResponseCallback;
 import com.phearom.assignment.BR;
 import com.phearom.assignment.R;
@@ -26,6 +30,9 @@ public class MainActivity extends AppCompatActivity {
 
     private ActivityMainBinding mBinding;
     private BooksViewModel mBooksViewModel;
+    private int mOffset = 0;
+    private int mCount = 20;
+    private LoadMoreHandler loadMoreHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,28 +42,66 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(mBinding.toolbarMain);
         setTitle("Home");
 
+        mBinding.swipeRefresh.setColorSchemeColors(Color.DKGRAY, Color.CYAN, Color.GRAY);
+        mBinding.swipeRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                mOffset = 0;
+                mBooksViewModel.items.clear();
+                getListBook(mOffset);
+            }
+        });
+
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
+        linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
+        mBinding.recycler.setLayoutManager(linearLayoutManager);
+        loadMoreHandler = new LoadMoreHandler(linearLayoutManager) {
+            @Override
+            public void onLoadMore() {
+                getListBook(mOffset);
+                loadMoreHandler.setLoaded();
+            }
+        };
+        mBinding.recycler.addOnScrollListener(loadMoreHandler);
+
         mBooksViewModel = new BooksViewModel();
         mBinding.setBooksViewModel(mBooksViewModel);
         mBinding.setView(this);
-        getListBook();
+        mOffset = 0;
+        getListBook(mOffset);
     }
 
-    private void getListBook() {
-        RequestGetBook requestGetBook = new RequestGetBook(this);
+    private void getListBook(int offset) {
+        setLoading(true);
+        final RequestGetBook requestGetBook = new RequestGetBook(this);
+        requestGetBook.setOffset(offset);
+        requestGetBook.setCount(mCount);
         requestGetBook.setOnResponseCallback(new ResponseCallback<List<Book>>() {
             @Override
             public void onSuccess(List<Book> response) {
-                for (Book b : response) {
-                    mBooksViewModel.addItem(new BookViewModel(b));
+                mBinding.swipeRefresh.setRefreshing(false);
+                try {
+                    if (response.size() > 0)
+                        mOffset = mOffset + mCount;
+                    for (Book b : response) {
+                        mBooksViewModel.addItem(new BookViewModel(b));
+                    }
+                    setLoading(false);
+                    response = null;
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-                setLoading(false);
-                response = null;
             }
 
             @Override
             public void onError(VolleyError error) {
                 setLoading(false);
-                Log.e("AllBook", error.getMessage());
+                mBinding.swipeRefresh.setRefreshing(false);
+                try {
+                    Log.e("AllBook", error.getMessage());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         });
         requestGetBook.execute();

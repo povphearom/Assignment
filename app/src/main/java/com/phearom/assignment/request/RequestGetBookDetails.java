@@ -6,9 +6,6 @@ import android.text.TextUtils;
 import com.phearom.api.core.server.SuperRequest;
 import com.phearom.assignment.model.Book;
 
-import java.util.List;
-import java.util.Map;
-
 /**
  * Created by phearom on 6/1/16.
  */
@@ -25,9 +22,10 @@ public class RequestGetBookDetails extends SuperRequest<Book> {
     }
 
     @Override
-    protected void getRequestParams(Map<String, String> params) {
+    protected String getRequestParams() {
         if (!TextUtils.isEmpty(getId()))
-            params.put(NO_KEY, getId());
+            return getId();
+        return null;
     }
 
     @Override

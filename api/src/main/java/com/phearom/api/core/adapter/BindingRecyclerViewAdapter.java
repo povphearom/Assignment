@@ -10,7 +10,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-
 import com.phearom.api.core.binder.ItemBinder;
 import com.phearom.api.core.listener.ClickHandler;
 import com.phearom.api.core.listener.LongClickHandler;

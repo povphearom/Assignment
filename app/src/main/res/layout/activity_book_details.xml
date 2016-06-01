@@ -30,7 +30,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:background="@color/colorBackground"
-                    android:padding="60dp"
+                    android:padding="80dp"
                     android:src="@drawable/ic_insert_photo_black"
                     android:tint="#999" />
 
@@ -38,14 +38,22 @@
                     android:id="@+id/imv_Book"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:scaleType="centerCrop"
+                    android:adjustViewBounds="true"
+                    android:scaleType="fitCenter"
                     app:bindSrc="@{bookViewModel.image}" />
 
+                <ProgressBar
+                    android:id="@+id/progressbar"
+                    style="?android:attr/progressBarStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center" />
+
                 <android.support.v7.widget.Toolbar
-                    android:visibility="gone"
                     android:id="@+id/toolbar_Book"
                     android:layout_width="match_parent"
                     android:layout_height="?actionBarSize"
+                    android:visibility="gone"
                     app:popupTheme="@style/AppTheme.PopupOverlay" />
 
             </android.support.design.widget.CollapsingToolbarLayout>
@@ -121,22 +129,14 @@
                     android:padding="8dp">
 
                     <android.support.v7.widget.AppCompatTextView
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:gravity="fill"
-                        android:hint="Hello I am a developer in" />
+                        android:hint="@string/description" />
 
                 </android.support.v7.widget.LinearLayoutCompat>
 
             </android.support.v7.widget.LinearLayoutCompat>
 
         </android.support.v4.widget.NestedScrollView>
-
-        <ProgressBar
-            android:id="@+id/progressbar"
-            style="?android:attr/progressBarStyle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center" />
     </android.support.design.widget.CoordinatorLayout>
 </layout>

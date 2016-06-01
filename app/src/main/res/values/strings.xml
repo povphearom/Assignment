@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Assignment</string>
+    <string name="description">
+        Glide is designed to be flexible and this problem demonstrates that trait extremely well.
+        The following implementation may seem long, but all pieces have their reason for existence.
+    </string>
 </resources>

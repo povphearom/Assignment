@@ -20,6 +20,9 @@ public class RecyclerViewBindings {
     private static final int KEY_ITEMS = -123;
     private static final int KEY_CLICK_HANDLER = -124;
     private static final int KEY_LONG_CLICK_HANDLER = -125;
+    private static final int KEY_LOAD_HANDLER = -126;
+    private static int visibleThreshold = 5;
+    private static boolean isLoading = false;
 
     @SuppressWarnings("unchecked")
     @BindingAdapter("items")
@@ -64,6 +67,7 @@ public class RecyclerViewBindings {
             if (clickHandler != null) {
                 adapter.setClickHandler(clickHandler);
             }
+
             recyclerView.setAdapter(adapter);
         } catch (ClassCastException e) {
             e.printStackTrace();
