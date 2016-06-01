@@ -3,7 +3,7 @@ package com.phearom.assignment.request;
 import android.content.Context;
 import android.text.TextUtils;
 
-import com.phearom.api.core.server.SuperRequest;
+import com.phearom.api.server.SuperRequest;
 import com.phearom.assignment.model.Book;
 
 /**

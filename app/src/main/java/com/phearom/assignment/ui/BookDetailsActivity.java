@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.graphics.Palette;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.widget.Toast;
@@ -17,7 +18,8 @@ import com.android.volley.VolleyError;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SimpleTarget;
-import com.phearom.api.core.server.ResponseCallback;
+import com.phearom.api.base.BaseActivity;
+import com.phearom.api.server.ResponseCallback;
 import com.phearom.assignment.R;
 import com.phearom.assignment.databinding.ActivityBookDetailsBinding;
 import com.phearom.assignment.model.Book;
@@ -25,8 +27,7 @@ import com.phearom.assignment.request.RequestGetBookDetails;
 import com.phearom.assignment.utils.K;
 import com.phearom.assignment.viewmodel.BookViewModel;
 
-public class BookDetailsActivity extends AppCompatActivity {
-
+public class BookDetailsActivity extends BaseActivity {
     private ActivityBookDetailsBinding mBinding;
 
     public static void launch(Activity activity, BookViewModel bookViewModel) {
@@ -69,7 +70,7 @@ public class BookDetailsActivity extends AppCompatActivity {
             public void onError(VolleyError error) {
                 setLoading(false);
                 try {
-                    Toast.makeText(BookDetailsActivity.this, error.getMessage(), Toast.LENGTH_SHORT).show();
+                    Log.e(BookDetailsActivity.class.getSimpleName(), error.getMessage());
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -82,35 +83,36 @@ public class BookDetailsActivity extends AppCompatActivity {
         Glide.with(this)
                 .load(urlImage)
                 .asBitmap()
-                .into(new SimpleTarget<Bitmap>(10, 10) {
+                .into(new SimpleTarget<Bitmap>(5, 5) {
                     @Override
-                    public void onResourceReady(Bitmap resource, GlideAnimation glideAnimation) {
-                        Palette.from(resource).generate(new Palette.PaletteAsyncListener() {
-                            @Override
-                            public void onGenerated(Palette palette) {
-                                Palette.Swatch swatch = palette.getLightMutedSwatch();
-                                int color = ContextCompat.getColor(getApplicationContext(), R.color.colorPrimary);
-                                if (swatch != null)
-                                    if (swatch.getRgb() != 0)
-                                        color = swatch.getRgb();
-                                    else if (swatch.getBodyTextColor() != 0)
-                                        color = swatch.getBodyTextColor();
-                                    else if (swatch.getTitleTextColor() != 0)
-                                        color = swatch.getTitleTextColor();
-                                setTaskBarColored(color);
-                                setLoading(false);
-                            }
-                        });
+                    public void onResourceReady(final Bitmap resource, GlideAnimation glideAnimation) {
+                        try {
+                            Palette.from(resource).generate(new Palette.PaletteAsyncListener() {
+                                @Override
+                                public void onGenerated(Palette palette) {
+                                    Palette.Swatch swatch = palette.getLightMutedSwatch();
+                                    int color = ContextCompat.getColor(getApplicationContext(), R.color.colorPrimary);
+                                    if (swatch != null)
+                                        if (swatch.getRgb() != 0)
+                                            color = swatch.getRgb();
+                                        else if (swatch.getBodyTextColor() != 0)
+                                            color = swatch.getBodyTextColor();
+                                        else if (swatch.getTitleTextColor() != 0)
+                                            color = swatch.getTitleTextColor();
+                                    setTaskBarColored(color);
+                                    setLoading(false);
+                                }
+                            });
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     }
                 });
 
     }
 
     private String getBookId() {
-        Bundle extras = getIntent().getExtras();
-        if (null != extras)
-            return extras.getString(K.Id);
-        return "0";
+        return getIntent().getExtras().getString(K.Id, "0");
     }
 
     @Override
@@ -124,5 +126,11 @@ public class BookDetailsActivity extends AppCompatActivity {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             w.setStatusBarColor(color);
         }
+    }
+
+    @Override
+    public void onConnectionChange(boolean connected) {
+        if (connected)
+            getBookDetail();
     }
 }

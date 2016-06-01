@@ -1,4 +1,4 @@
-package com.phearom.api.core.server;
+package com.phearom.api.server;
 
 import com.android.volley.VolleyError;
 

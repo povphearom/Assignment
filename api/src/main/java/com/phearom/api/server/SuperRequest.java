@@ -1,14 +1,19 @@
-package com.phearom.api.core.server;
+package com.phearom.api.server;
 
+import android.app.Activity;
 import android.content.Context;
+import android.support.design.widget.Snackbar;
 import android.text.TextUtils;
 import android.util.Base64;
 import android.util.Log;
+import android.view.View;
 
 import com.android.volley.AuthFailureError;
+import com.android.volley.NoConnectionError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
+import com.android.volley.TimeoutError;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
@@ -93,6 +98,12 @@ public abstract class SuperRequest<T> {
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
+                if (error instanceof NoConnectionError)
+                    callSnackBar("No internet connection");
+                else if (error instanceof TimeoutError)
+                    callSnackBar("Request timeout");
+                else if (error instanceof AuthFailureError)
+                    callSnackBar("Failed authentication");
                 if (null != mResponseCallback)
                     mResponseCallback.onError(error);
                 destroy();
@@ -136,5 +147,14 @@ public abstract class SuperRequest<T> {
 
     public void setCount(int count) {
         this.count = count;
+    }
+
+    private void callSnackBar(String s) {
+        View view = null;
+        if (mContext instanceof Activity) {
+            Activity activity = (Activity) mContext;
+            view = activity.findViewById(android.R.id.content);
+        }
+        Snackbar.make(view, s, Snackbar.LENGTH_LONG).show();
     }
 }

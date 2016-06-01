@@ -10,14 +10,16 @@ import android.util.Log;
 import android.view.View;
 
 import com.android.volley.VolleyError;
+import com.phearom.api.base.BaseActivity;
 import com.phearom.api.core.binder.CompositeItemBinder;
 import com.phearom.api.core.binder.ItemBinder;
 import com.phearom.api.core.listener.ClickHandler;
 import com.phearom.api.core.listener.LoadMoreHandler;
-import com.phearom.api.core.server.ResponseCallback;
+import com.phearom.api.server.ResponseCallback;
 import com.phearom.assignment.BR;
 import com.phearom.assignment.R;
 import com.phearom.assignment.binder.BookBinder;
+import com.phearom.assignment.binder.BookLoadBinder;
 import com.phearom.assignment.databinding.ActivityMainBinding;
 import com.phearom.assignment.model.Book;
 import com.phearom.assignment.request.RequestGetBook;
@@ -26,12 +28,12 @@ import com.phearom.assignment.viewmodel.BooksViewModel;
 
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends BaseActivity {
 
     private ActivityMainBinding mBinding;
     private BooksViewModel mBooksViewModel;
     private int mOffset = 0;
-    private int mCount = 20;
+    private int mCount = 10;
     private LoadMoreHandler loadMoreHandler;
 
     @Override
@@ -42,7 +44,7 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(mBinding.toolbarMain);
         setTitle("Home");
 
-        mBinding.swipeRefresh.setColorSchemeColors(Color.DKGRAY, Color.CYAN, Color.GRAY);
+        mBinding.swipeRefresh.setColorSchemeColors(Color.DKGRAY, Color.GRAY);
         mBinding.swipeRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
@@ -58,8 +60,13 @@ public class MainActivity extends AppCompatActivity {
         loadMoreHandler = new LoadMoreHandler(linearLayoutManager) {
             @Override
             public void onLoadMore() {
-                getListBook(mOffset);
-                loadMoreHandler.setLoaded();
+                try {
+                    getListBook(mOffset);
+                    mBooksViewModel.addFooter();
+                    loadMoreHandler.setLoaded();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         };
         mBinding.recycler.addOnScrollListener(loadMoreHandler);
@@ -68,11 +75,11 @@ public class MainActivity extends AppCompatActivity {
         mBinding.setBooksViewModel(mBooksViewModel);
         mBinding.setView(this);
         mOffset = 0;
+        setLoading(true);
         getListBook(mOffset);
     }
 
     private void getListBook(int offset) {
-        setLoading(true);
         final RequestGetBook requestGetBook = new RequestGetBook(this);
         requestGetBook.setOffset(offset);
         requestGetBook.setCount(mCount);
@@ -81,6 +88,7 @@ public class MainActivity extends AppCompatActivity {
             public void onSuccess(List<Book> response) {
                 mBinding.swipeRefresh.setRefreshing(false);
                 try {
+                    mBooksViewModel.removeFooter();
                     if (response.size() > 0)
                         mOffset = mOffset + mCount;
                     for (Book b : response) {
@@ -98,7 +106,7 @@ public class MainActivity extends AppCompatActivity {
                 setLoading(false);
                 mBinding.swipeRefresh.setRefreshing(false);
                 try {
-                    Log.e("AllBook", error.getMessage());
+                    Log.e(MainActivity.class.getSimpleName(), error.getMessage());
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -109,6 +117,7 @@ public class MainActivity extends AppCompatActivity {
 
     public ItemBinder<BookViewModel> itemViewBinder() {
         return new CompositeItemBinder<>(
+                new BookLoadBinder(BR.bookLoad, R.layout.item_load),
                 new BookBinder(BR.book, R.layout.item_book)
         );
     }
@@ -117,7 +126,8 @@ public class MainActivity extends AppCompatActivity {
         return new ClickHandler<BookViewModel>() {
             @Override
             public void onClick(BookViewModel viewModel, View v) {
-                BookDetailsActivity.launch(MainActivity.this, viewModel);
+                if (viewModel instanceof BookViewModel)
+                    BookDetailsActivity.launch(MainActivity.this, viewModel);
             }
         };
     }
@@ -132,5 +142,11 @@ public class MainActivity extends AppCompatActivity {
         mBooksViewModel.items.clear();
         mBooksViewModel = null;
         mBinding.unbind();
+    }
+
+    @Override
+    public void onConnectionChange(boolean connected) {
+        if (connected)
+            getListBook(mOffset);
     }
 }
